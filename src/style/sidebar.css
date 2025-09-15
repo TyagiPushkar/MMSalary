@@ -1,0 +1,47 @@
+/* Add this CSS to your sidebar.css or a separate CSS file */
+
+/* Style for the submenu container */
+.submenu {
+  margin-left: 20px;
+  /* Adjust the indentation as needed */
+}
+
+/* Style for the submenu items */
+.submenu-item {
+  display: block;
+  padding: 10px 0;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.3s ease, color 0.3s ease;
+
+  /* Add a hover effect */
+  &:hover {
+    background-color: #f0f0f0;
+    /* Change to your desired hover background color */
+  }
+}
+
+/* Style for the sub-submenu container */
+.sub-submenu {
+  margin-left: 20px;
+  /* Adjust the indentation as needed */
+}
+
+/* Style for the sub-submenu items */
+.sub-submenu-item {
+  display: block;
+  padding: 10px 0;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.3s ease, color 0.3s ease;
+
+  /* Add a hover effect */
+  &:hover {
+    background-color: #e0e0e0;
+    /* Change to your desired hover background color */
+  }
+}
+
+.dark .submenu{
+  color: #e0e0e0;
+}

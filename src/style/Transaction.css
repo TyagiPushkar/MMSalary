@@ -1,0 +1,139 @@
+/* Transaction.css */
+.modal-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    /* Use 100% of viewport height */
+}
+
+/* Styling for the modal content */
+.modal-content {
+    max-height: 80vh;
+    /* Maximum height of the modal content */
+    overflow-y: auto;
+    /* Enable vertical scroll if content overflows */
+    width: 70%;
+    /* Adjust as needed */
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+.small-image {
+    max-width: 40px;
+    max-height: 40px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.large-image {
+    max-width: 100%;
+    max-height: 100%;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.image-container {
+    display: inline-block;
+    position: relative;
+}
+
+.large-image {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: aliceblue;
+    z-index: 9999;
+}
+.image-buttons {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: none;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 5px;
+}
+
+.rotate-button,
+.close-button {
+    padding: 4px 8px;
+    margin: 4px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+.rotate-button:hover,
+.close-button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+.tabs {
+    color: aliceblue;
+    font-size: large;
+    margin: 20px;
+}
+.tabs button {
+    border: none;
+    background-color: transparent !important;
+    color: aliceblue;
+}
+
+.datePicker {
+    right: 0;
+}
+
+.dark-theme {
+    background-color: #f0f5f6ff;
+}
+
+.MuiTableHead-root {
+    background-color: #333;
+}
+.TableContainer-root {
+    background-color: #212631;
+    color: #fff;
+}
+.MuiTableBody-root .MuiTableCell-body {
+    /* background-color: #212631; */
+    color: #fff;
+}
+.MuiTablePagination-root {
+    background-color: #212631;
+    color: #fff;
+}
+
+/* Update the buttons in the table pagination */
+.MuiTablePagination-root .MuiButtonBase-root {
+    color: #fff;
+}
+
+.ant-picker-panel {
+    background-color: #212631;
+    color: #fff;
+}
+.MuiTableBody-root .MuiTableRow-root:hover {
+        background-color: #c7c4c4;
+}
+.close{
+    align-items: flex-end;
+}
+
+.button {
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    color: gray;
+}
+
+.button.active {
+    border-bottom: solid #fafcfc;
+    border-width: medium;
+    color: #fff;
+}
+
+.selected {
+    background-color: #625BD0;
+}
