@@ -1,4 +1,4 @@
 // config.js
-const baseURL = "https://in3.co.in:8443";
+const baseURL = "https://mm-salary.vercel.app";
 const phpBaseURL = "https://namami-infotech.com/MMSalary";
 export { baseURL, phpBaseURL };
