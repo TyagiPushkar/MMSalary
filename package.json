@@ -2,7 +2,7 @@
   "name": "project_syncfusion_dashboard",
   "version": "0.1.0",
   "private": true,
-  "homepage": "/MnM/",
+  "homepage": "/",
   "dependencies": {
     "@amcharts/amcharts4": "^4.10.38",
     "@amcharts/amcharts5": "^5.4.11",
