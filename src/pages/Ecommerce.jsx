@@ -101,7 +101,7 @@ const Home = () => {
       if (error.name === "AbortError") {
         toast.error("Upload timeout - file too large");
       } else {
-        toast.error("Error uploading file");
+        toast.error("Error uploading file in backend");
       }
     } finally {
       setLoading(false);
