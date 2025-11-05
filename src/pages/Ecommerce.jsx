@@ -62,28 +62,47 @@ const Home = () => {
     try {
       setLoading(true);
 
+      // Show progress indicator for large files
+      if (file.size > 5 * 1024 * 1024) {
+        // 5MB
+        toast.info("Processing large file, please wait...");
+      }
+
       const formData = new FormData();
       formData.append("file", file);
 
+      // Add timeout for large files
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
+
       const response = await fetch(
-        // `${baseURL}/api/upload_excel_mmmm_daily_blast`,
         `${phpBaseURL}/upload_excel_mmmm_daily_blast.php`,
         {
           method: "POST",
           body: formData,
+          signal: controller.signal,
         }
       );
+
+      clearTimeout(timeoutId);
 
       const data = await response.json();
 
       if (response.ok) {
         toast.success(data.message);
+        if (data.failed > 0) {
+          toast.warning(`${data.failed} rows failed to process`);
+        }
       } else {
-        toast.error(data.detail);
+        toast.error(data.detail || "Upload failed");
       }
     } catch (error) {
       console.error("Error uploading file:", error);
-      toast.error("Error uploading file");
+      if (error.name === "AbortError") {
+        toast.error("Upload timeout - file too large");
+      } else {
+        toast.error("Error uploading file");
+      }
     } finally {
       setLoading(false);
       fileInput.value = "";

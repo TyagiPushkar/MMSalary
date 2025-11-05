@@ -212,7 +212,7 @@ const Package = () => {
 
     } catch (error) {
       console.error("Error fetching employee data:", error);
-    }
+    } 
   };
 
   const handleSave = async (rowId, selectedOption) => {
