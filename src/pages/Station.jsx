@@ -93,14 +93,17 @@ const Station = () => {
     { field: "sp_van_b", headerName: "Van B", width: 90 },
     { field: "sp_van_c", headerName: "Van C", width: 90 },
     { field: "sp_van_d", headerName: "Van D", width: 90 },
+    { field: "sp_van_z", headerName: "Van Z", width: 90 },
     { field: "vancd_a", headerName: "VANDCD A", width: 100 },
     { field: "vancd_b", headerName: "VANDCD B", width: 100 },
     { field: "vancd_c", headerName: "VANDCD C", width: 100 },
     { field: "vancd_d", headerName: "VANDCD D", width: 100 },
+    { field: "vancd_z", headerName: "VANDCD Z", width: 100 },
     { field: "ev_van_a", headerName: "EV Van A", width: 100 },
     { field: "ev_van_b", headerName: "EV Van B", width: 100 },
     { field: "ev_van_c", headerName: "EV Van C", width: 100 },
     { field: "ev_van_d", headerName: "EV Van D", width: 100 },
+    { field: "ev_van_z", headerName: "EV Van Z", width: 100 },
   ];
 
 

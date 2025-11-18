@@ -282,20 +282,55 @@ const Home = () => {
 
       const response = await fetch(`${phpBaseURL}/dsp_rate_card.php`);
       const jsonData = await response.json();
-      const worksheet = xlsx.utils.json_to_sheet(jsonData);
-      const workbook = xlsx.utils.book_new();
-      xlsx.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-      const buffer = xlsx.write(workbook, { bookType: "xlsx", type: "buffer" });
-      const blob = new Blob([buffer], { type: "application/octet-stream" });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "dsp_rate_card.xlsx");
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode.removeChild(link);
 
-      toast.success("File downloaded successfully");
+      if (!Array.isArray(jsonData) || jsonData.length === 0) {
+        toast.error("No data available for download");
+        setLoading(false);
+        return;
+      }
+
+      // Define the desired column order, including the new Z columns
+      const columnOrder = [
+        "Station_Code",
+        "Bike_A",
+        "Bike_B",
+        "Bike_C",
+        "Bike_D",
+        "Van_A",
+        "Van_B",
+        "Van_C",
+        "Van_D",
+        "Van_Z",
+        "Van_DCD_A",
+        "Van_DCD_B",
+        "Van_DCD_C",
+        "Van_DCD_D",
+        "Van_DCD_Z",
+        "E_Van_A",
+        "E_Van_B",
+        "E_Van_C",
+        "E_Van_D",
+        "E_Van_Z",
+      ];
+
+      // Reorder columns based on the desired sequence
+      const orderedData = jsonData.map((row) => {
+        const orderedRow = {};
+        columnOrder.forEach((col) => {
+          orderedRow[col] = row[col] !== undefined ? row[col] : "";
+        });
+        return orderedRow;
+      });
+
+      // Create Excel sheet
+      const worksheet = xlsx.utils.json_to_sheet(orderedData);
+      const workbook = xlsx.utils.book_new();
+      xlsx.utils.book_append_sheet(workbook, worksheet, "Rate Card");
+
+      // Download file
+      xlsx.writeFile(workbook, "dsp_rate_card.xlsx");
+
+      toast.success("Rate Card downloaded successfully");
     } catch (error) {
       console.error("Error downloading file: ", error);
       toast.error("Error downloading file");
@@ -303,6 +338,7 @@ const Home = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div>
