@@ -2,15 +2,34 @@ import React, { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../style/Map.css";
-import { baseURL, phpBaseURL} from "./../config";
-import { Button } from "@mui/material";
-import { FaEye, FaDownload, FaUpload, FaSpinner } from "react-icons/fa";
+import { baseURL, phpBaseURL } from "./../config";
+import { 
+  Button, 
+  Dialog, 
+  DialogTitle, 
+  DialogContent, 
+  DialogActions, 
+  Typography, 
+  Box, 
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip
+} from "@mui/material";
+import { FaEye, FaDownload, FaUpload, FaSpinner, FaTimes, FaExclamationTriangle, FaFileCsv } from "react-icons/fa";
 import defaultStationFile from "../data/StationFile.xlsx";
 import * as xlsx from "xlsx";
 import dayjs from "dayjs";
 
 const Home = () => {
   const [loading, setLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState([]);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [uploadSummary, setUploadSummary] = useState({});
   const user = JSON.parse(sessionStorage.getItem("user-info"));
   const [monthYear, setMonthYear] = useState(dayjs().subtract(1, "month"));
   const [selectedOfficeId, setSelectedOfficeId] = useState("");
@@ -18,6 +37,302 @@ const Home = () => {
     ? user.officeid.split(",").map((id) => id.trim())
     : [user.officeid];
 
+  // Validation Errors Popup Modal Component
+  const ValidationErrorModal = () => (
+    <Dialog 
+      open={showErrorModal} 
+      onClose={() => setShowErrorModal(false)}
+      maxWidth="lg"
+      fullWidth
+      scroll="paper"
+      PaperProps={{
+        style: {
+          minHeight: '600px',
+          maxHeight: '90vh'
+        }
+      }}
+    >
+      <DialogTitle style={{ backgroundColor: '#fef2f2', borderBottom: '1px solid #fecaca' }}>
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Box display="flex" alignItems="center">
+            <FaExclamationTriangle style={{ color: '#dc2626', marginRight: '8px' }} />
+            <Typography variant="h6" component="span" style={{ color: '#dc2626', fontWeight: 'bold' }}>
+              File Validation Failed
+            </Typography>
+          </Box>
+          <Button 
+            onClick={() => setShowErrorModal(false)} 
+            size="small"
+            style={{ minWidth: 'auto' }}
+          >
+            <FaTimes />
+          </Button>
+        </Box>
+      </DialogTitle>
+      
+      <DialogContent style={{ padding: 0 }}>
+        {/* Upload Summary */}
+        {uploadSummary && (uploadSummary.total_rows_processed || uploadSummary.successful_rows !== undefined) && (
+          <Paper elevation={1} style={{ margin: '16px', padding: '16px', backgroundColor: '#fffbeb', border: '1px solid #fcd34d' }}>
+            <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: '#92400e', marginBottom: '8px' }}>
+              Upload Summary
+            </Typography>
+            <Box display="flex" gap={4} flexWrap="wrap">
+              {uploadSummary.total_rows_processed !== undefined && (
+                <Typography variant="body2" style={{ color: '#374151' }}>
+                  <strong>Total Rows Processed:</strong> {uploadSummary.total_rows_processed}
+                </Typography>
+              )}
+              {uploadSummary.successful_rows !== undefined && (
+                <Chip 
+                  label={`Successful Rows: ${uploadSummary.successful_rows}`}
+                  variant="outlined"
+                  style={{ color: '#166534', borderColor: '#16a34a' }}
+                />
+              )}
+              <Chip 
+                label={`Validation Errors: ${validationErrors.length}`}
+                variant="outlined"
+                style={{ color: '#dc2626', borderColor: '#dc2626' }}
+              />
+              {uploadSummary.failed_rows !== undefined && (
+                <Chip 
+                  label={`Failed Rows: ${uploadSummary.failed_rows}`}
+                  variant="outlined"
+                  style={{ color: '#dc2626', borderColor: '#dc2626' }}
+                />
+              )}
+            </Box>
+          </Paper>
+        )}
+
+        {/* Errors List */}
+        <Box style={{ padding: '16px' }}>
+          <Typography variant="subtitle2" style={{ fontWeight: 'bold', color: '#374151', marginBottom: '12px' }}>
+            Detailed Validation Errors ({validationErrors.length} errors found):
+          </Typography>
+          
+          <TableContainer 
+            component={Paper} 
+            style={{ 
+              maxHeight: '400px', 
+              border: '1px solid #e5e7eb',
+              overflow: 'auto'
+            }}
+          >
+            <Table stickyHeader size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell style={{ fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
+                    Row Number
+                  </TableCell>
+                  <TableCell style={{ fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
+                    Error Reason
+                  </TableCell>
+                  <TableCell style={{ fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
+                    Additional Information
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {validationErrors.map((error, index) => (
+                  <TableRow 
+                    key={index} 
+                    style={{ 
+                      backgroundColor: index % 2 === 0 ? '#ffffff' : '#f8fafc'
+                    }}
+                  >
+                    <TableCell style={{ fontWeight: 'medium', color: '#dc2626' }}>
+                      {error.row || 'N/A'}
+                    </TableCell>
+                    <TableCell style={{ color: '#374151' }}>
+                      {error.reason || 'Unknown error'}
+                    </TableCell>
+                    <TableCell style={{ color: '#6b7280' }}>
+                      <Box>
+                        {error.emp_code && (
+                          <div>
+                            <strong>Employee Code:</strong> {error.emp_code}
+                          </div>
+                        )}
+                        {error.field && (
+                          <div>
+                            <strong>Field:</strong> {error.field}
+                          </div>
+                        )}
+                        {error.value && (
+                          <div>
+                            <strong>Value:</strong> {error.value}
+                          </div>
+                        )}
+                        {!error.emp_code && !error.field && !error.value && (
+                          <span style={{ color: '#9ca3af' }}>No additional information</span>
+                        )}
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          
+        </Box>
+      </DialogContent>
+      
+      <DialogActions style={{ borderTop: '1px solid #e5e7eb', padding: '16px' }}>
+        <Button 
+          onClick={() => setShowErrorModal(false)} 
+          variant="outlined" 
+          color="primary"
+          style={{ marginRight: '8px' }}
+        >
+          Close
+        </Button>
+        {/* <Button 
+          onClick={downloadErrorReport} 
+          variant="contained" 
+          color="secondary"
+          startIcon={<FaFileCsv />}
+          disabled={validationErrors.length === 0}
+        >
+          Download Error Report
+        </Button> */}
+      </DialogActions>
+    </Dialog>
+  );
+
+  // Function to download error report as CSV
+  const downloadErrorReport = () => {
+    if (validationErrors.length === 0) return;
+
+    const csvHeaders = ['Row Number', 'Error Reason', 'Employee Code', 'Field', 'Value'];
+    const csvData = validationErrors.map(error => [
+      error.row || '',
+      `"${(error.reason || '').replace(/"/g, '""')}"`,
+      error.emp_code || '',
+      error.field || '',
+      error.value || ''
+    ]);
+
+    const csvContent = [
+      csvHeaders.join(','),
+      ...csvData.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `validation_errors_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    toast.info("Error report downloaded successfully");
+  };
+
+  // Updated handleStationFile function
+  const handleStationFile = async (event) => {
+    const fileInput = event.target;
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      setValidationErrors([]);
+      setUploadSummary({});
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("location", selectedOfficeId || user.officeid);
+
+      const response = await fetch(`${phpBaseURL}/upload_excel_statiob_file.php`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Success case - but might have validation warnings
+        if (data.validation_errors && data.validation_errors.length > 0) {
+          // File processed but with validation errors
+          setValidationErrors(data.validation_errors);
+          setUploadSummary({
+            total_rows_processed: data.total_rows_processed,
+            successful_rows: data.total_rows_processed - data.validation_errors.length,
+            failed_rows: data.validation_errors.length
+          });
+          setShowErrorModal(true);
+          
+          toast.warning(
+            `File processed with ${data.validation_errors.length} validation errors. ${data.total_rows_processed - data.validation_errors.length} rows successful.`
+          );
+        } else {
+          // Complete success
+          toast.success(data.message || "File uploaded successfully");
+        }
+
+        // Proceed with salary calculation after successful upload
+        setTimeout(async () => {
+          const month = parseInt(monthYear.format("M"), 10).toString();
+          const year = monthYear.format("YYYY");
+
+          const salaryData = {
+            month: month,
+            year: year,
+            station: selectedOfficeId || user.officeid,
+          };
+
+          try {
+            const salaryResponse = await fetch(`${phpBaseURL}/salary_calculation.php`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(salaryData),
+            });
+
+            if (salaryResponse.ok) {
+              toast.success("Salary calculation completed.");
+            } else {
+              const salaryError = await salaryResponse.json();
+              toast.error(`Salary calculation failed: ${salaryError.message}`);
+            }
+          } catch (err) {
+            console.error("Error during salary calculation:", err);
+            toast.error("Error during salary calculation.");
+          }
+        }, 2000);
+
+      } else {
+        // Error case - validation failed completely
+        if (data.validation_errors && data.validation_errors.length > 0) {
+          setValidationErrors(data.validation_errors);
+          setUploadSummary({
+            total_rows_processed: data.total_rows_processed,
+            successful_rows: 0,
+            failed_rows: data.validation_errors.length
+          });
+          setShowErrorModal(true);
+          
+          toast.error(
+            `Validation failed: ${data.validation_errors.length} errors found. No data inserted.`
+          );
+        } else {
+          toast.error(data.detail || "Upload failed");
+        }
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast.error("Error uploading file");
+    } finally {
+      setLoading(false);
+      fileInput.value = "";
+    }
+  };
+
+  // All other file handling functions remain the same
   const handleFileInputChange = async (event) => {
     const fileInput = event.target;
     const file = fileInput.files[0];
@@ -30,7 +345,6 @@ const Home = () => {
       formData.append("file", file);
 
       const response = await fetch(
-        // `${baseURL}/api/upload_excel_monthly_consolidate`,
         `${phpBaseURL}/upload_excel_monthly_consolidate.php`,
         {
           method: "POST",
@@ -109,72 +423,6 @@ const Home = () => {
     }
   };
 
-  const handleStationFile = async (event) => {
-    const fileInput = event.target;
-    const file = fileInput.files[0];
-    if (!file) return;
-
-    try {
-      setLoading(true);
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("location", selectedOfficeId || user.officeid);
-
-      // const response = await fetch(`${baseURL}/api/upload_excel_statiob_file`, {
-      const response = await fetch(`${phpBaseURL}/upload_excel_statiob_file.php`, {
-        method: "POST",
-        body: formData,
-      });
-
-      // if (response.ok) {
-      //   toast.success(data.message);
-      // } else {
-      //   toast.error(data.detail || "Upload failed");
-      // }
-
-      if (response.ok) {
-        toast.success(response.message);
-      } else {
-        toast.error(response.detail || "Upload failed");
-      }
-
-      setTimeout(async () => {
-        const month = parseInt(monthYear.format("M"), 10).toString();
-        const year = monthYear.format("YYYY");
-
-        const salaryData = {
-          month: month,
-          year: year,
-          station: selectedOfficeId || user.officeid,
-        };
-
-        try {
-          const salaryResponse = await fetch(`${phpBaseURL}/salary_calculation.php`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(salaryData),
-          });
-
-          if (salaryResponse.ok) {
-            toast.success("Salary calculation completed.");
-          } else {
-            const salaryError = await salaryResponse.json();
-            toast.error(`Salary calculation failed: ${salaryError.message}`);
-          }
-        } catch (err) {
-          toast.error("Error during salary calculation.");
-        }
-      }, 2000);
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      toast.error("Error uploading file");
-    } finally {
-      setLoading(false);
-      fileInput.value = "";
-    }
-  };
-
   const handleDSPLoss = async (event) => {
     const fileInput = event.target;
     const file = fileInput.files[0];
@@ -186,7 +434,6 @@ const Home = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      // const response = await fetch(`${baseURL}/api/upload_dsp_loss`, {
       const response = await fetch(`${phpBaseURL}/upload_dsp_loss.php`, {
         method: "POST",
         body: formData,
@@ -219,7 +466,6 @@ const Home = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      // const response = await fetch(`${baseURL}/api/upload_dsp_cash_short`, {
       const response = await fetch(`${phpBaseURL}/upload_dsp_cash_short.php`, {
         method: "POST",
         body: formData,
@@ -254,7 +500,6 @@ const Home = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      // const response = await fetch(`${baseURL}/api/dsp_rate_card`, {
       const response = await fetch(`${phpBaseURL}/upload_dsp_rate_card.php`, {
         method: "POST",
         body: formData,
@@ -339,15 +584,17 @@ const Home = () => {
     }
   };
 
-
   return (
     <div>
       <div style={{ display: "flex", flexDirection: "column" }}>
         {loading && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <FaSpinner className="text-white animate-spin" size={40} />
           </div>
         )}
+
+        {/* Validation Error Modal */}
+        <ValidationErrorModal />
 
         {user && user.officeid === "HO" && (
           <>
@@ -366,7 +613,6 @@ const Home = () => {
                 <input
                   id="monthlyReport"
                   type="file"
-                  // accept=".csv"
                   accept=".xlsx"
                   onChange={handleFileInputChange}
                   style={{ display: "none" }}
@@ -397,7 +643,6 @@ const Home = () => {
                 <input
                   id="dspReport"
                   type="file"
-                  // accept=".CSV"
                   accept=".xlsx"
                   onChange={handleDSPFile}
                   style={{ display: "none" }}
@@ -428,7 +673,6 @@ const Home = () => {
                 <input
                   id="dspLoss"
                   type="file"
-                  // accept=".csv"
                   accept=".xlsx"
                   onChange={handleDSPLoss}
                   style={{ display: "none" }}
@@ -459,7 +703,6 @@ const Home = () => {
                 <input
                   id="cashShort"
                   type="file"
-                  // accept=".csv"
                   accept=".xlsx"
                   onChange={handleCashShort}
                   style={{ display: "none" }}
