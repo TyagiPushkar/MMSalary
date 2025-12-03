@@ -8,6 +8,12 @@ import {
   InputLabel,
   OutlinedInput,
   TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  Typography,
 } from "@mui/material";
 import {
   DataGrid,
@@ -25,6 +31,8 @@ import { baseURL, phpBaseURL } from "./../config";
 import { sum } from "@syncfusion/ej2/heatmap";
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import CloseIcon from "@mui/icons-material/Close";
 
 const CashShort = () => {
   const [totalCashShort, setTotalCashShort] = useState(0);
@@ -33,6 +41,9 @@ const CashShort = () => {
   const [employees, setEmployees] = useState([]);
   const [stationData, setStationData] = useState([]);
   const [employeeData, setEmployeeData] = useState([]);
+  const [detailData, setDetailData] = useState([]);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [selectedStation, setSelectedStation] = useState("");
   const user = JSON.parse(sessionStorage.getItem("user-info"));
   const [monthYear, setMonthYear] = useState(dayjs().subtract(1, "month"));
 
@@ -41,30 +52,10 @@ const CashShort = () => {
     const year = monthYear.format("YYYY");
 
     try {
-      // const response = await fetch(`${phpBaseURL}/total_salary.php`, {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ month: month, year: year }),
-      // });
-
-      // if (!response.ok) {
-      //   throw new Error("Failed to fetch employee data");
-      // }
-
-      // const data = await response.json();
-      // if (user.officeid !== "HO") {
-      //   const filteredEmployeeData = data.filter(
-      //     (emp) => emp.station_code === user.officeid
-      //   );
-      //   setEmployeeData(filteredEmployeeData);
-      // } else {
-      //   setEmployeeData(data);
-      // }
-
       const response = await fetch(`${phpBaseURL}/get_employee_data.php`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ officeId: user.officeid, type: 'dsp' }),
+        body: JSON.stringify({ officeId: user.officeid, type: "dsp" }),
       });
 
       if (!response.ok) {
@@ -73,18 +64,17 @@ const CashShort = () => {
 
       const data = await response.json();
       setEmployeeData(data.data);
-      
 
       const cashShortResponse = await fetch(
         `${phpBaseURL}/show_station_cash_short.php`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(
-            { 
-              month: month, year: year,
-              officeId: user.officeid
-            }),
+          body: JSON.stringify({
+            month: month,
+            year: year,
+            officeId: user.officeid,
+          }),
         }
       );
       if (cashShortResponse.ok) {
@@ -99,11 +89,12 @@ const CashShort = () => {
         });
 
         const formattedData = sortedData.map((row, index) => ({
-          index: index + 1,
+          id: index + 1,
           ...row,
           recover_cash_short: row.recover_cash_short,
-          pending_cash_short:
-            -(row.total_cash_short + (row.recover_cash_short || 0)),
+          pending_cash_short: -(
+            row.total_cash_short + (row.recover_cash_short || 0)
+          ),
         }));
         setStationData(formattedData);
         setTotalSum(
@@ -131,6 +122,45 @@ const CashShort = () => {
     fetchData();
   }, [user.officeid, monthYear]);
 
+  const fetchDetailData = async (stationCode) => {
+    const month = parseInt(monthYear.format("M"), 10).toString();
+    const year = monthYear.format("YYYY");
+
+    try {
+      const response = await fetch(`${phpBaseURL}/get_cash_short_details.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          station_code: stationCode,
+          month: month,
+          year: year,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setDetailData(data);
+      } else {
+        throw new Error("Failed to fetch detail data");
+      }
+    } catch (error) {
+      console.error("Error fetching detail data:", error);
+      toast.error("Failed to load detail data");
+    }
+  };
+
+  const handleViewDetails = (stationCode) => {
+    setSelectedStation(stationCode);
+    fetchDetailData(stationCode);
+    setDetailDialogOpen(true);
+  };
+
+  const handleCloseDetailDialog = () => {
+    setDetailDialogOpen(false);
+    setDetailData([]);
+    setSelectedStation("");
+  };
+
   const handleAddEmployee = () => {
     const month = parseInt(monthYear.format("M"), 10).toString();
     const year = monthYear.format("YYYY");
@@ -142,7 +172,7 @@ const CashShort = () => {
         station_code: user.officeid,
         mm_code: "",
         name: "",
-        cash_short_remark:"",
+        cash_short_remark: "",
         month: month,
         year: year,
       },
@@ -189,31 +219,37 @@ const CashShort = () => {
       return;
     }
 
-    if(-(totalCashShort + recoveryAmount) != 0){
+    if (-(totalCashShort + recoveryAmount) != 0) {
       toast.warning("Recovery amount should equal zero!");
       return;
     }
 
     try {
-      const response = await fetch(`${phpBaseURL}/receive_cash_short_data.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(employees),
-      });
+      const response = await fetch(
+        `${phpBaseURL}/receive_cash_short_data.php`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(employees),
+        }
+      );
 
       const month = parseInt(monthYear.format("M"), 10).toString();
       const year = monthYear.format("YYYY");
 
-      const response1 = await fetch(`${phpBaseURL}/update_total_cash_short.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          month: month,
-          year: year,
-          station_code: user.officeid,
-          recover_amount: recoveryAmount,
-        }),
-      });
+      const response1 = await fetch(
+        `${phpBaseURL}/update_total_cash_short.php`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            month: month,
+            year: year,
+            station_code: user.officeid,
+            recover_amount: recoveryAmount,
+          }),
+        }
+      );
 
       if (response.ok && response1.ok) {
         toast.success("Upload Data Successfully");
@@ -232,7 +268,7 @@ const CashShort = () => {
 
   const columns = [
     {
-      field: "index",
+      field: "id",
       headerName: "Sr No.",
       flex: 0.5,
     },
@@ -262,6 +298,67 @@ const CashShort = () => {
       flex: 1,
       renderCell: (params) => {
         return params.value === 1 ? "Recovered" : "Not Recovered";
+      },
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      flex: 1,
+      renderCell: (params) => (
+        <IconButton
+          color="primary"
+          onClick={() => handleViewDetails(params.row.station_code)}
+          size="small"
+          sx={{
+            color: "#1547bd",
+            "&:hover": {
+              backgroundColor: "rgba(21, 71, 189, 0.1)",
+            },
+          }}
+        >
+          <VisibilityIcon />
+        </IconButton>
+      ),
+    },
+  ];
+
+  const detailColumns = [
+    {
+      field: "index",
+      headerName: "Sr No.",
+      flex: 0.5,
+    },
+    {
+      field: "employee_name",
+      headerName: "Employee Name",
+      flex: 1.5,
+    },
+    {
+      field: "mm_code",
+      headerName: "MM Code",
+      flex: 1,
+    },
+    {
+      field: "cash_short",
+      headerName: "Cash Short Amount",
+      flex: 1,
+    },
+    {
+      field: "advanced_recovery",
+      headerName: "Advanced Recovery",
+      flex: 1,
+    },
+    {
+      field: "cash_short_remark",
+      headerName: "Remark",
+      flex: 1.5,
+    },
+    {
+      field: "created_date",
+      headerName: "Date",
+      flex: 1,
+      renderCell: (params) => {
+        return dayjs(params.value).format("DD/MM/YYYY");
       },
     },
   ];
@@ -414,7 +511,11 @@ const CashShort = () => {
                   }}
                   style={{ marginLeft: "40px", marginRight: "40px" }}
                   onChange={(e) =>
-                    handleEmployeeChange(index, "cash_short_remark", e.target.value)
+                    handleEmployeeChange(
+                      index,
+                      "cash_short_remark",
+                      e.target.value
+                    )
                   }
                 />
               </div>
@@ -500,10 +601,13 @@ const CashShort = () => {
                 "& .MuiIconButton-root": {
                   color: "white",
                 },
-                // "& .none-row .amazonId": {
-                //     backgroundColor: "red",
-                //     color: "white"
-                // }
+                // Fix for action button visibility
+                "& .MuiDataGrid-cell .MuiIconButton-root": {
+                  color: "#1547bd !important",
+                },
+                "& .MuiDataGrid-cell .MuiIconButton-root:hover": {
+                  backgroundColor: "rgba(21, 71, 189, 0.1) !important",
+                },
               }}
             >
               <DataGrid
@@ -516,6 +620,48 @@ const CashShort = () => {
               />
             </Box>
           </Box>
+
+          {/* Detail Dialog */}
+          <Dialog
+            open={detailDialogOpen}
+            onClose={handleCloseDetailDialog}
+            maxWidth="lg"
+            fullWidth
+          >
+            <DialogTitle>
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Typography variant="h6">
+                  Cash Short Details - Station: {selectedStation}
+                </Typography>
+                <IconButton onClick={handleCloseDetailDialog}>
+                  <CloseIcon />
+                </IconButton>
+              </Box>
+            </DialogTitle>
+            <DialogContent>
+              <Box sx={{ height: 400, width: "100%" }}>
+                <DataGrid
+                  rows={detailData.map((item, index) => ({
+                    id: index + 1,
+                    ...item,
+                  }))}
+                  columns={detailColumns}
+                  pageSize={10}
+                  rowsPerPageOptions={[10]}
+                  disableSelectionOnClick
+                />
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDetailDialog} color="primary">
+                Close
+              </Button>
+            </DialogActions>
+          </Dialog>
         </>
       )}
       <ToastContainer
