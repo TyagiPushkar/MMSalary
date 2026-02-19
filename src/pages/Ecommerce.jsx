@@ -666,7 +666,7 @@ const Home = () => {
             >
               <div style={{ flex: 1 }}>
                 <label htmlFor="dspLoss" className="text-black b ml-20">
-                  DSP Loss
+                  DSP Packet Loss
                 </label>
               </div>
               <div style={{ flex: 1, right: 0 }}>
