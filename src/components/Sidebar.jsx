@@ -33,7 +33,7 @@ const Sidebar = () => {
     const fetchCashShortData = async () => {
       try {
         const response = await fetch(
-          "http://164.52.220.66:8001/show_station_cash_short"
+          "http://164.52.220.66:8001/show_station_cash_short",
         );
         if (!response.ok) throw new Error("Failed to fetch data");
         const data = await response.json();
@@ -47,7 +47,7 @@ const Sidebar = () => {
   }, [dispatch]);
 
   const hasPendingCashShort = cashShortData.some(
-    (entry) => entry.station_code === user.officeid && entry.status === 0
+    (entry) => entry.station_code === user.officeid && entry.status === 0,
   );
 
   const handleCloseSidebar = () => {
@@ -85,13 +85,13 @@ const Sidebar = () => {
     {
       path: "/CashShortSubmitted",
       label: "DSP Submitted Cash Loss",
-      show: isDSP
+      show: isDSP,
     },
     // HO specific
     {
       path: "/edspuploader",
       label: "EDSP Upload File",
-      show: isHO || isEDSP,
+      // show: isHO || isEDSP,
     },
     {
       path: "/Data",
@@ -142,17 +142,17 @@ const Sidebar = () => {
     {
       path: "/EdspCashShort",
       label: "EDSP Cash Loss",
-      show: isEDSP,
+      // show: isEDSP,
     },
     {
       path: "/EdspPacketLoss",
       label: "EDSP Packet Loss",
-      show: isEDSP,
+      // show: isEDSP,
     },
     {
       path: "/EdspStation",
       label: "EDSP Supervisor Data",
-      show: isEDSP,
+      // show: isEDSP,
     },
     {
       path: "/EdspSalary",
@@ -172,12 +172,17 @@ const Sidebar = () => {
     {
       path: "/EdspSLP",
       label: "EDSP SLP Loss",
-      show: isHO || isEDSP,
+      // show: isHO || isEDSP,
     },
     {
       path: "/EdspRedispute",
       label: "EDSP Redispute",
       show: isHO,
+    },
+    {
+      path: "/AddEmployee",
+      label: "Add Employee",
+      show: isEDSP,
     },
   ];
 

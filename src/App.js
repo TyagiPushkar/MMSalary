@@ -31,13 +31,14 @@ import {
   FixedSalary,
   PermanentSalary,
   DspSummary,
-  EdspSummary
+  EdspSummary,
 } from "./pages";
 import { useStateContext } from "./contexts/ContextProvider";
 import { FiSettings } from "react-icons/fi";
 import { TooltipComponent } from "@syncfusion/ej2-react-popups";
 import "./App.css";
 import CashShortSubmitted from "./pages/CashShortSubmitted";
+import { AddEmployee } from "./pages/AddEmployee";
 
 const App = () => {
   const {
@@ -121,7 +122,8 @@ const App = () => {
                         userInfo.officeid.includes(",")) ? (
                         <Ecommerce />
                       ) : (
-                        <EdspUploader />
+                        // <EdspUploader />
+                        " "
                       )
                     }
                   />
@@ -146,7 +148,7 @@ const App = () => {
                       <Route path="/EdspSalary" element={<EdspSalary />} />
                       <Route path="/EdspSummary" element={<EdspSummary />} />
                       <Route path="/EdspPivot" element={<EdspPivotTable />} />
-             
+
                       <Route
                         path="/EdspRedispute"
                         element={<EdspRedispute />}
@@ -164,8 +166,12 @@ const App = () => {
                   )}
                   <Route path="/Station" element={<Station />} />
                   <Route path="/CashShort" element={<CashShort />} />
-                  <Route path="/CashShortSubmitted" element={<CashShortSubmitted />} />
+                  <Route
+                    path="/CashShortSubmitted"
+                    element={<CashShortSubmitted />}
+                  />
                   <Route path="/PackageLoss" element={<PackageLoss />} />
+                  <Route path="/AddEmployee" element={<AddEmployee />} />
                   <Route path="/EdspCashShort" element={<EdspCashShort />} />
                   <Route path="/EdspPacketLoss" element={<EdspPacketLoss />} />
                   <Route path="/EdspStation" element={<EdspStationFile />} />
