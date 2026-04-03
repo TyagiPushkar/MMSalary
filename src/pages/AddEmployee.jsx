@@ -17,6 +17,7 @@ import {
 import { Close as CloseIcon } from "@mui/icons-material";
 import { DataGrid } from "@mui/x-data-grid";
 import RegistrationForm from "../components/Add_employe_form";
+import EmployeeDetailsView from "../components/EmployeeDetailsView";
 
 export const AddEmployee = () => {
   const user = JSON.parse(sessionStorage.getItem("user-info")) || {};
@@ -25,6 +26,9 @@ export const AddEmployee = () => {
   const [officeFilter, setOfficeFilter] = useState("");
   const [filteredData, setFilteredData] = useState([]);
   const [openModal, setOpenModal] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [openViewModal, setOpenViewModal] = useState(false);
+  const [viewEmployee, setViewEmployee] = useState(null);
 
   // API call
   useEffect(() => {
@@ -93,17 +97,27 @@ export const AddEmployee = () => {
     {
       field: "actions",
       headerName: "Actions",
-      flex: 1.5,
+      width: 220,
       headerClassName: "bold-header",
       renderCell: (params) => (
-        <Box sx={{ display: "flex", gap: 1 }}>
-          <Button size="small" variant="contained">
+        <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => {
+              setViewEmployee(params.row);
+              setOpenViewModal(true);
+            }}
+          >
             View
           </Button>
           <Button
             size="small"
             variant="outlined"
-            onClick={() => setOpenModal(true)}
+            onClick={() => {
+              setSelectedEmployee(params.row);
+              setOpenModal(true);
+            }}
           >
             Add
           </Button>
@@ -128,7 +142,7 @@ export const AddEmployee = () => {
           display: "flex",
           gap: 2,
           mb: 2,
-          backgroundColor: "#fff",
+          backgroundColor: "#dddddd",
           p: 2,
           borderRadius: 2,
           border: "1px solid #ddd",
@@ -141,14 +155,40 @@ export const AddEmployee = () => {
           variant="outlined"
           value={searchName}
           onChange={(e) => setSearchName(e.target.value)}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: "black",
+                borderWidth: "1.5px",
+              },
+              "&:hover fieldset": {
+                borderColor: "black",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: "black",
+              },
+            },
+          }}
         />
 
-        <FormControl size="small" sx={{ minWidth: 150 }} variant="outlined">
+        <FormControl size="small" sx={{ minWidth: 150 }}>
           <InputLabel>Office</InputLabel>
           <Select
             value={officeFilter}
             label="Office"
             onChange={(e) => setOfficeFilter(e.target.value)}
+            sx={{
+              "& fieldset": {
+                borderColor: "black",
+                borderWidth: "1.5px",
+              },
+              "&:hover fieldset": {
+                borderColor: "black",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: "black",
+              },
+            }}
           >
             <MenuItem value="">All</MenuItem>
             <MenuItem value="NAMAMI">NAMAMI</MenuItem>
@@ -164,6 +204,8 @@ export const AddEmployee = () => {
           height: 450,
           backgroundColor: "#fff",
           borderRadius: 2,
+          border: "2px solid black",
+          overflow: "hidden",
         }}
       >
         <DataGrid
@@ -175,14 +217,77 @@ export const AddEmployee = () => {
             "& .bold-header": {
               fontWeight: "bold",
             },
+            border: "none",
+            "& .MuiDataGrid-cell": {
+              whiteSpace: "normal",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              wordWrap: "break-word",
+              display: "flex",
+              alignItems: "center",
+              padding: "8px 4px",
+            },
+            "& .MuiDataGrid-row": {
+              height: "auto",
+              minHeight: "52px",
+            },
           }}
         />
       </Box>
 
+      {/* Modal for Viewing Employee Details */}
+      <Dialog
+        open={openViewModal}
+        onClose={() => {
+          setOpenViewModal(false);
+          setViewEmployee(null);
+        }}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <span>Employee Details - {viewEmployee?.name}</span>
+            <IconButton
+              onClick={() => {
+                setOpenViewModal(false);
+                setViewEmployee(null);
+              }}
+              size="small"
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers sx={{ maxHeight: "70vh", overflowY: "auto" }}>
+          <EmployeeDetailsView data={viewEmployee} />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setOpenViewModal(false);
+              setViewEmployee(null);
+            }}
+            variant="contained"
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Modal for Registration Form */}
       <Dialog
         open={openModal}
-        onClose={() => setOpenModal(false)}
+        onClose={() => {
+          setOpenModal(false);
+          setSelectedEmployee(null);
+        }}
         maxWidth="sm"
         fullWidth
       >
@@ -195,13 +300,26 @@ export const AddEmployee = () => {
             }}
           >
             <span>Add Employee Registration</span>
-            <IconButton onClick={() => setOpenModal(false)} size="small">
+            <IconButton
+              onClick={() => {
+                setOpenModal(false);
+                setSelectedEmployee(null);
+              }}
+              size="small"
+            >
               <CloseIcon />
             </IconButton>
           </Box>
         </DialogTitle>
         <DialogContent dividers>
-          <RegistrationForm onClose={() => setOpenModal(false)} />
+          <RegistrationForm
+            initialData={selectedEmployee}
+            onClose={() => {
+              setOpenModal(false);
+              setSelectedEmployee(null);
+            }}
+            userInfo={user}
+          />
         </DialogContent>
       </Dialog>
     </Box>

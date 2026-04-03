@@ -153,6 +153,10 @@ const App = () => {
                         path="/EdspRedispute"
                         element={<EdspRedispute />}
                       />
+                      {/* <Route
+                        path="/register_employee"
+                        element={<RegisterEmployee />}
+                      /> */}
                     </>
                   )}
                   {userInfo && (userInfo.officeid === "HO" || isDualRole) && (
@@ -164,6 +168,10 @@ const App = () => {
                       />
                     </>
                   )}
+                  //only routes for superviser and dsp{" "}
+                  {userInfo &&
+                    (userInfo.station_type === "DSP" || isDualRole) && <></>}
+                  <Route path="/AddEmployee" element={<AddEmployee />} />
                   <Route path="/Station" element={<Station />} />
                   <Route path="/CashShort" element={<CashShort />} />
                   <Route
@@ -171,7 +179,6 @@ const App = () => {
                     element={<CashShortSubmitted />}
                   />
                   <Route path="/PackageLoss" element={<PackageLoss />} />
-                  <Route path="/AddEmployee" element={<AddEmployee />} />
                   <Route path="/EdspCashShort" element={<EdspCashShort />} />
                   <Route path="/EdspPacketLoss" element={<EdspPacketLoss />} />
                   <Route path="/EdspStation" element={<EdspStationFile />} />

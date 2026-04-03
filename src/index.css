@@ -1,13 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap");
 
 body {
-    max-width: 100%;
-    margin: 0;
-    padding:0;
-    font-family: "Open Sans", sans-serif;
-    background-color: #20232a;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: "Open Sans", sans-serif;
+  background-color: #20232a;
 }
 
 @tailwind base;
-/* @tailwind components; */
+@tailwind components;
 @tailwind utilities;
+
+/* Material-UI Input Styling */
+/* .MuiOutlinedInput-root {
+  background-color: #ffffff !important;
+  border: 1px solid #000000 !important;
+} */
+
+/* .MuiOutlinedInput-input {
+  color: #000000 !important;
+} */
+
+/* .MuiOutlinedInput-notchedOutline {
+  border: 2px solid #000000 !important;
+} */

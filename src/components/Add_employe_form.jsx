@@ -1,243 +1,164 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import {
-  Container,
-  Paper,
-  Typography,
-  TextField,
-  Button,
-  Box,
-  Divider,
-  FormHelperText,
-  Stack,
-  Alert,
-  Snackbar,
-} from "@mui/material";
-import {
   ArrowBack as ArrowBackIcon,
   CloudUpload as CloudUploadIcon,
 } from "@mui/icons-material";
-import { styled } from "@mui/material/styles";
 
-const VisuallyHiddenInput = styled("input")({
-  clip: "rect(0 0 0 0)",
-  clipPath: "inset(50%)",
-  height: 1,
-  overflow: "hidden",
-  position: "absolute",
-  bottom: 0,
-  left: 0,
-  whiteSpace: "nowrap",
-  width: 1,
-});
-
-const FileUploadButton = ({ label, value, onChange, required = false }) => {
-  const handleFileChange = (event) => {
-    if (event.target.files && event.target.files[0]) {
-      onChange(event.target.files[0]);
-    }
-  };
-
+const FileUploadButton = ({ label, value, onChange }) => {
   return (
-    <Box
-      sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}
-    >
-      <Button
-        component="label"
-        variant="outlined"
-        startIcon={<CloudUploadIcon />}
-        size="small"
-      >
-        {label}
-        <VisuallyHiddenInput type="file" onChange={handleFileChange} />
-      </Button>
-      <Typography variant="body2" color="text.secondary">
-        {value ? value.name : "No file chosen"}
-      </Typography>
-      {required && (
-        <Typography variant="caption" color="error">
-          *
-        </Typography>
-      )}
-    </Box>
+    <div className="w-full">
+      <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-blue-400 rounded-lg cursor-pointer hover:bg-blue-50 transition">
+        <div className="flex items-center space-x-2">
+          <CloudUploadIcon className="text-blue-500" />
+          <span className="text-sm font-medium text-gray-700">{label}</span>
+        </div>
+        <input
+          type="file"
+          onChange={(e) => onChange(e.target.files[0])}
+          className="hidden"
+        />
+      </label>
+      <p className="text-xs text-gray-500 mt-2">
+        {value ? value.name : "No file selected"}
+      </p>
+    </div>
   );
 };
 
-FileUploadButton.propTypes = {
-  label: PropTypes.string.isRequired,
-  value: PropTypes.object,
-  onChange: PropTypes.func.isRequired,
-  required: PropTypes.bool,
-};
+const SectionCard = ({ title, children }) => (
+  <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
+    <h3 className="text-lg font-semibold text-gray-800 mb-4">{title}</h3>
+    {children}
+  </div>
+);
 
-const RegistrationForm = ({ onClose }) => {
+const RegistrationForm = ({ initialData, onClose, userInfo = {} }) => {
   const [formData, setFormData] = useState({
-    fatherName: "",
-    dateOfBirth: "",
-    address: "",
-    district: "",
-    state: "",
-    pinCode: "",
-    aadharNumber: "",
-    panNumber: "",
-    drivingLicenseNo: "",
-    rcNumber: "",
-    accountHolderName: "",
-    accountIFSC: "",
-    accountNo: "",
-    amazonLoginId: "",
+    Name: initialData?.name || "",
+    phone: initialData?.phone || "",
+    officeid: initialData?.officeid || "",
+    photo: initialData?.photo || "",
+    location: initialData?.location || "",
+    employee_role: initialData?.employee_role || "",
+    email: initialData?.email || "",
+    fatherName: initialData?.father_name || "",
+    dateOfBirth: initialData?.date_of_birth || "",
+    address: initialData?.address || "",
+    district: initialData?.district || "",
+    state: initialData?.state || "",
+    pinCode: initialData?.pin_code || "",
+    aadharNumber: initialData?.aadhar_number || "",
+    panNumber: initialData?.pan_number || "",
+    accountHolderName: initialData?.account_holder_name || "",
+    accountIFSC: initialData?.account_ifsc || "",
+    accountNo: initialData?.account_number || "",
   });
 
   const [files, setFiles] = useState({
     aadharPhoto: null,
     panPhoto: null,
-    drivingLicensePhoto: null,
-    rcPhoto: null,
-    passbookPhoto: null,
   });
 
-  const [errors, setErrors] = useState({});
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
 
-  const getMaxDate = () => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
-  };
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-
-    if (name === "aadharNumber") {
-      const numericValue = value.replace(/\D/g, "");
-      if (numericValue.length <= 12) {
-        setFormData((prev) => ({ ...prev, [name]: numericValue }));
-      }
-    } else if (name === "pinCode") {
-      const numericValue = value.replace(/\D/g, "");
-      if (numericValue.length <= 6) {
-        setFormData((prev) => ({ ...prev, [name]: numericValue }));
-      }
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleFileChange = (field) => (file) => {
-    setFiles((prev) => ({ ...prev, [field]: file }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }));
-    }
+    setFiles({ ...files, [field]: file });
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-
-    const requiredFields = [
-      "fatherName",
-      "dateOfBirth",
-      "address",
-      "district",
-      "state",
-      "pinCode",
-      "aadharNumber",
-      "panNumber",
-      "drivingLicenseNo",
-      "rcNumber",
-    ];
-
-    requiredFields.forEach((field) => {
-      if (!formData[field]?.trim()) {
-        newErrors[field] = "This field is required";
-      }
-    });
-
-    if (formData.dateOfBirth) {
-      const birthDate = new Date(formData.dateOfBirth);
-      const today = new Date();
-      const age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-
-      if (
-        monthDiff < 0 ||
-        (monthDiff === 0 && today.getDate() < birthDate.getDate())
-      ) {
-        if (age - 1 < 18) {
-          newErrors.dateOfBirth = "You must be at least 18 years old";
-        }
-      } else if (age < 18) {
-        newErrors.dateOfBirth = "You must be at least 18 years old";
-      }
-
-      if (birthDate > today) {
-        newErrors.dateOfBirth = "Date of birth cannot be in the future";
-      }
-    }
-
-    if (formData.aadharNumber && formData.aadharNumber.length !== 12) {
-      newErrors.aadharNumber = "Aadhar number must be exactly 12 digits";
-    }
-
-    if (
-      formData.panNumber &&
-      !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(formData.panNumber)
-    ) {
-      newErrors.panNumber = "Invalid PAN card format (e.g., ABCDE1234F)";
-    }
-
-    if (formData.pinCode && formData.pinCode.length !== 6) {
-      newErrors.pinCode = "Pin code must be exactly 6 digits";
-    }
-
-    if (
-      formData.accountIFSC &&
-      !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.accountIFSC)
-    ) {
-      newErrors.accountIFSC = "Invalid IFSC code";
-    }
-
-    const requiredFiles = [
-      "aadharPhoto",
-      "panPhoto",
-      "drivingLicensePhoto",
-      "rcPhoto",
-    ];
-    requiredFiles.forEach((field) => {
-      if (!files[field]) {
-        newErrors[field] = "This file is required";
-      }
-    });
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      console.log("Form Data:", formData);
-      console.log("Files:", files);
+    setLoading(true);
+
+    try {
+      // Create FormData for file upload
+      const submitData = new FormData();
+
+      // Add form fields
+      submitData.append("name", formData.Name);
+      submitData.append("phone", formData.phone);
+      submitData.append("officeid", formData.officeid);
+      submitData.append("photo", formData.photo);
+      submitData.append("location", formData.location);
+      submitData.append("employee_role", formData.employee_role);
+      submitData.append("fathers_name", formData.fatherName);
+      submitData.append("dob", formData.dateOfBirth);
+      submitData.append("address", formData.address);
+      submitData.append("district", formData.district);
+      submitData.append("state", formData.state);
+      submitData.append("pin_code", formData.pinCode);
+      submitData.append("aadhar_number", formData.aadharNumber);
+      submitData.append("pan_card", formData.panNumber);
+      submitData.append("ac_name", formData.accountHolderName);
+      submitData.append("ifsc", formData.accountIFSC);
+      submitData.append("account_num", formData.accountNo);
+
+      // Add employee ID if editing
+      if (initialData?.id) {
+        submitData.append("employee_id", initialData.id);
+      }
+
+      // Add office ID from user info
+      if (userInfo?.officeid) {
+        submitData.append("office_id", userInfo.officeid);
+      }
+
+      // Add files
+      if (files.aadharPhoto) {
+        submitData.append("aadhar_photo", files.aadharPhoto);
+      }
+      if (files.panPhoto) {
+        submitData.append("pan_photo", files.panPhoto);
+      }
+
+      // API call
+      const response = await fetch(
+        "https://namami-infotech.com/MMSalary/Employee/add_req_employe.php",
+        {
+          method: "POST",
+          body: submitData,
+        },
+      );
+
+      const result = await response.json();
+
+      if (result.success || result.status === "success") {
+        setSnackbar({
+          open: true,
+          message: result.message || "Employee details saved successfully!",
+          severity: "success",
+        });
+
+        // Close modal after 2 seconds
+        setTimeout(() => {
+          if (onClose) onClose();
+        }, 2000);
+      } else {
+        setSnackbar({
+          open: true,
+          message: result.message || "Error saving employee details",
+          severity: "error",
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error);
       setSnackbar({
         open: true,
-        message: "Registration submitted successfully!",
-        severity: "success",
-      });
-      setTimeout(() => {
-        if (onClose) onClose();
-      }, 1000);
-    } else {
-      setSnackbar({
-        open: true,
-        message: "Please fill all required fields correctly",
+        message: "Error submitting form. Please try again.",
         severity: "error",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -251,369 +172,328 @@ const RegistrationForm = ({ onClose }) => {
       pinCode: "",
       aadharNumber: "",
       panNumber: "",
-      drivingLicenseNo: "",
-      rcNumber: "",
       accountHolderName: "",
       accountIFSC: "",
       accountNo: "",
-      amazonLoginId: "",
     });
+
     setFiles({
       aadharPhoto: null,
       panPhoto: null,
-      drivingLicensePhoto: null,
-      rcPhoto: null,
-      passbookPhoto: null,
     });
-    setErrors({});
   };
-
-  const handleGoBack = () => {
-    if (onClose) {
-      onClose();
-    } else {
-      window.history.back();
-    }
-  };
-
-  const isInModal = !!onClose;
-
-  const FormContent = () => (
-    <Stack spacing={3}>
-      <TextField
-        fullWidth
-        label="Father's Name"
-        name="fatherName"
-        value={formData.fatherName}
-        onChange={handleInputChange}
-        error={!!errors.fatherName}
-        helperText={errors.fatherName}
-        required
-      />
-
-      <TextField
-        fullWidth
-        label="Date of Birth"
-        name="dateOfBirth"
-        type="date"
-        value={formData.dateOfBirth}
-        onChange={handleInputChange}
-        error={!!errors.dateOfBirth}
-        helperText={errors.dateOfBirth || "You must be at least 18 years old"}
-        InputLabelProps={{ shrink: true }}
-        inputProps={{
-          max: getMaxDate(),
-          min: "1900-01-01",
-        }}
-        required
-      />
-
-      <TextField
-        fullWidth
-        label="Address"
-        name="address"
-        value={formData.address}
-        onChange={handleInputChange}
-        error={!!errors.address}
-        helperText={errors.address}
-        multiline
-        rows={2}
-        required
-      />
-
-      <TextField
-        fullWidth
-        label="District"
-        name="district"
-        value={formData.district}
-        onChange={handleInputChange}
-        error={!!errors.district}
-        helperText={errors.district}
-        required
-      />
-
-      <TextField
-        fullWidth
-        label="State"
-        name="state"
-        value={formData.state}
-        onChange={handleInputChange}
-        error={!!errors.state}
-        helperText={errors.state}
-        required
-      />
-
-      <TextField
-        fullWidth
-        label="Pin Code"
-        name="pinCode"
-        value={formData.pinCode}
-        onChange={handleInputChange}
-        error={!!errors.pinCode}
-        helperText={errors.pinCode || "Must be exactly 6 digits"}
-        inputProps={{
-          maxLength: 6,
-          inputMode: "numeric",
-        }}
-        required
-      />
-
-      <Divider sx={{ my: 1 }} />
-      <Typography variant="h6" gutterBottom>
-        Identity Documents
-      </Typography>
-
-      <TextField
-        fullWidth
-        label="Aadhar Card Number"
-        name="aadharNumber"
-        value={formData.aadharNumber}
-        onChange={handleInputChange}
-        error={!!errors.aadharNumber}
-        helperText={errors.aadharNumber || "Must be exactly 12 digits"}
-        inputProps={{
-          maxLength: 12,
-          inputMode: "numeric",
-        }}
-        required
-      />
-
-      <Box>
-        <FileUploadButton
-          label="Upload Aadhar Photo"
-          value={files.aadharPhoto}
-          onChange={handleFileChange("aadharPhoto")}
-          required
-        />
-        {errors.aadharPhoto && (
-          <FormHelperText error>{errors.aadharPhoto}</FormHelperText>
-        )}
-      </Box>
-
-      <TextField
-        fullWidth
-        label="PAN Card Number"
-        name="panNumber"
-        value={formData.panNumber}
-        onChange={handleInputChange}
-        error={!!errors.panNumber}
-        helperText={errors.panNumber || "e.g., ABCDE1234F"}
-        inputProps={{
-          maxLength: 10,
-          style: { textTransform: "uppercase" },
-        }}
-        required
-      />
-
-      <Box>
-        <FileUploadButton
-          label="Upload PAN Photo"
-          value={files.panPhoto}
-          onChange={handleFileChange("panPhoto")}
-          required
-        />
-        {errors.panPhoto && (
-          <FormHelperText error>{errors.panPhoto}</FormHelperText>
-        )}
-      </Box>
-
-      <TextField
-        fullWidth
-        label="Driving License No"
-        name="drivingLicenseNo"
-        value={formData.drivingLicenseNo}
-        onChange={handleInputChange}
-        error={!!errors.drivingLicenseNo}
-        helperText={errors.drivingLicenseNo}
-        required
-      />
-
-      <Box>
-        <FileUploadButton
-          label="Upload License Photo"
-          value={files.drivingLicensePhoto}
-          onChange={handleFileChange("drivingLicensePhoto")}
-          required
-        />
-        {errors.drivingLicensePhoto && (
-          <FormHelperText error>{errors.drivingLicensePhoto}</FormHelperText>
-        )}
-      </Box>
-
-      <TextField
-        fullWidth
-        label="RC Number"
-        name="rcNumber"
-        value={formData.rcNumber}
-        onChange={handleInputChange}
-        error={!!errors.rcNumber}
-        helperText={errors.rcNumber}
-        required
-      />
-
-      <Box>
-        <FileUploadButton
-          label="Upload RC Photo"
-          value={files.rcPhoto}
-          onChange={handleFileChange("rcPhoto")}
-          required
-        />
-        {errors.rcPhoto && (
-          <FormHelperText error>{errors.rcPhoto}</FormHelperText>
-        )}
-      </Box>
-
-      <Divider sx={{ my: 1 }} />
-      <Typography variant="h6" gutterBottom>
-        Bank Details
-      </Typography>
-
-      <TextField
-        fullWidth
-        label="Account Holder Name"
-        name="accountHolderName"
-        value={formData.accountHolderName}
-        onChange={handleInputChange}
-      />
-
-      <TextField
-        fullWidth
-        label="Account IFSC"
-        name="accountIFSC"
-        value={formData.accountIFSC}
-        onChange={handleInputChange}
-        error={!!errors.accountIFSC}
-        helperText={errors.accountIFSC || "e.g., SBIN0001234"}
-        inputProps={{
-          style: { textTransform: "uppercase" },
-        }}
-      />
-
-      <TextField
-        fullWidth
-        label="Account No"
-        name="accountNo"
-        value={formData.accountNo}
-        onChange={handleInputChange}
-      />
-
-      <FileUploadButton
-        label="Upload Passbook Photo"
-        value={files.passbookPhoto}
-        onChange={handleFileChange("passbookPhoto")}
-      />
-
-      <Divider sx={{ my: 1 }} />
-      <Typography variant="h6" gutterBottom>
-        Other Details
-      </Typography>
-
-      <TextField
-        fullWidth
-        label="Amazon LoginId"
-        name="amazonLoginId"
-        value={formData.amazonLoginId}
-        onChange={handleInputChange}
-      />
-
-      <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 3 }}>
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          size="large"
-          sx={{ minWidth: 120 }}
-        >
-          Register
-        </Button>
-        <Button
-          type="button"
-          variant="outlined"
-          color="secondary"
-          size="large"
-          onClick={handleReset}
-          sx={{ minWidth: 120 }}
-        >
-          Reset
-        </Button>
-      </Stack>
-    </Stack>
-  );
-
-  if (isInModal) {
-    return (
-      <>
-        <form onSubmit={handleSubmit}>
-          <FormContent />
-        </form>
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        >
-          <Alert
-            onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-            severity={snackbar.severity}
-            sx={{ width: "100%" }}
-          >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-      </>
-    );
-  }
 
   return (
-    <Box sx={{ bgcolor: "skyblue", minHeight: "100vh", py: 4 }}>
-      <Container maxWidth="md">
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={handleGoBack}
-          sx={{ mb: 2, bgcolor: "white", "&:hover": { bgcolor: "#f0f0f0" } }}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+      <div className="max-w-2xl mx-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => window.history.back()}
+          className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 mb-6 font-medium transition"
         >
-          Go Back!!
-        </Button>
+          <ArrowBackIcon className="w-5 h-5" />
+          <span>Back</span>
+        </button>
 
-        <Paper elevation={3} sx={{ p: { xs: 2, sm: 4 } }}>
-          <Typography
-            variant="h4"
-            component="h1"
-            align="center"
-            gutterBottom
-            fontWeight="bold"
-            color="primary"
-          >
-            REGISTRATION FORM
-          </Typography>
-          <Divider sx={{ mb: 3 }} />
+        {/* Main Card */}
+        <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            Registration Form
+          </h1>
+          <p className="text-gray-600 text-sm mb-6">
+            Please fill all the required details
+          </p>
 
-          <form onSubmit={handleSubmit}>
-            <FormContent />
+          <hr className="mb-8 border-gray-200" />
+
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Personal Details */}
+            <SectionCard title="Personal Details">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Profile Photo Upload */}
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    📷 Profile Photo
+                  </label>
+                  <FileUploadButton
+                    label="Upload Profile Photo"
+                    value={files.profilePhoto}
+                    onChange={handleFileChange("profilePhoto")}
+                  />
+                  {/* Photo Preview - Show existing photo or new upload preview */}
+                  <div className="mt-3 text-center">
+                    {files.profilePhoto ? (
+                      <>
+                        <img
+                          src={URL.createObjectURL(files.profilePhoto)}
+                          alt="Profile Preview"
+                          className="w-20 h-20 rounded-full mx-auto border-2 border-blue-400 object-cover"
+                        />
+                        <p className="text-xs text-blue-600 mt-1 font-semibold">
+                          New Photo
+                        </p>
+                      </>
+                    ) : formData.photo ? (
+                      <>
+                        <img
+                          src={formData.photo}
+                          alt="Current Profile"
+                          className="w-20 h-20 rounded-full mx-auto border-2 border-green-400 object-cover"
+                          onError={(e) => {
+                            e.target.src =
+                              "https://via.placeholder.com/80?text=Photo";
+                          }}
+                        />
+                        <p className="text-xs text-green-600 mt-1 font-semibold">
+                          Current Photo
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-xs text-gray-400 mt-1">
+                        No photo selected
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Father Name
+                  </label>
+                  <input
+                    type="text"
+                    name="fatherName"
+                    value={formData.fatherName}
+                    onChange={handleInputChange}
+                    placeholder="Enter father's name"
+                    className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Date of Birth
+                  </label>
+                  <input
+                    type="date"
+                    name="dateOfBirth"
+                    value={formData.dateOfBirth}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-800"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Address
+                  </label>
+                  <textarea
+                    name="address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    placeholder="Enter your address"
+                    rows="2"
+                    className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-800"
+                  ></textarea>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    District
+                  </label>
+                  <input
+                    type="text"
+                    name="district"
+                    value={formData.district}
+                    onChange={handleInputChange}
+                    placeholder="District"
+                    className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    name="state"
+                    value={formData.state}
+                    onChange={handleInputChange}
+                    placeholder="State"
+                    className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Pin Code
+                  </label>
+                  <input
+                    type="text"
+                    name="pinCode"
+                    value={formData.pinCode}
+                    onChange={handleInputChange}
+                    placeholder="Pin Code"
+                    className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-800"
+                  />
+                </div>
+              </div>
+            </SectionCard>
+
+            {/* Documents */}
+            <SectionCard title="Documents">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Aadhar Number
+                  </label>
+                  <input
+                    type="text"
+                    name="aadharNumber"
+                    value={formData.aadharNumber}
+                    onChange={handleInputChange}
+                    placeholder="Enter Aadhar number"
+                    className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Upload Aadhar
+                  </label>
+                  <FileUploadButton
+                    label="Upload Aadhar"
+                    value={files.aadharPhoto}
+                    onChange={handleFileChange("aadharPhoto")}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    PAN Number
+                  </label>
+                  <input
+                    type="text"
+                    name="panNumber"
+                    value={formData.panNumber}
+                    onChange={handleInputChange}
+                    placeholder="Enter PAN number"
+                    className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Upload PAN
+                  </label>
+                  <FileUploadButton
+                    label="Upload PAN"
+                    value={files.panPhoto}
+                    onChange={handleFileChange("panPhoto")}
+                  />
+                </div>
+              </div>
+            </SectionCard>
+
+            {/* Bank Details */}
+            <SectionCard title="Bank Details">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Account Holder Name
+                  </label>
+                  <input
+                    type="text"
+                    name="accountHolderName"
+                    value={formData.accountHolderName}
+                    onChange={handleInputChange}
+                    placeholder="Account holder name"
+                    className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    IFSC Code
+                  </label>
+                  <input
+                    type="text"
+                    name="accountIFSC"
+                    value={formData.accountIFSC}
+                    onChange={handleInputChange}
+                    placeholder="IFSC Code"
+                    className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Account Number
+                  </label>
+                  <input
+                    type="text"
+                    name="accountNo"
+                    value={formData.accountNo}
+                    onChange={handleInputChange}
+                    placeholder="Account number"
+                    className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-800"
+                  />
+                </div>
+              </div>
+            </SectionCard>
+
+            {/* Buttons */}
+            <div className="flex gap-4 justify-center pt-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-8 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition disabled:bg-blue-300 disabled:cursor-not-allowed"
+              >
+                {loading ? "Saving..." : "Register"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleReset}
+                disabled={loading}
+                className="px-8 py-3 border-2 border-blue-500 text-blue-500 font-semibold rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Reset
+              </button>
+            </div>
           </form>
-        </Paper>
 
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        >
-          <Alert
-            onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-            severity={snackbar.severity}
-            sx={{ width: "100%" }}
-          >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-      </Container>
-    </Box>
+          {/* Snackbar */}
+          {snackbar.open && (
+            <div
+              className={`mt-6 p-4 rounded-lg animate-pulse ${
+                snackbar.severity === "success"
+                  ? "bg-green-100 text-green-700 border border-green-300"
+                  : "bg-red-100 text-red-700 border border-red-300"
+              }`}
+            >
+              <div className="flex justify-between items-center">
+                <span>{snackbar.message}</span>
+                <button
+                  onClick={() => setSnackbar({ ...snackbar, open: false })}
+                  className="text-lg font-bold hover:opacity-70"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 
 RegistrationForm.propTypes = {
   onClose: PropTypes.func,
+  initialData: PropTypes.object,
+  userInfo: PropTypes.object,
 };
 
 export default RegistrationForm;
