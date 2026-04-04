@@ -32,10 +32,14 @@ export const AddEmployee = () => {
 
   // API call
   useEffect(() => {
+    // Determine endpoint based on user type
+    const endpoint =
+      user.type === "super"
+        ? `https://namami-infotech.com/MMSalary/Employee/fetch_employee.php?officeid=${user.officeid}`
+        : `https://namami-infotech.com/MMSalary/Register/fetch_employee.php?officeid=${user.officeid}`;
+
     axios
-      .get(
-        `https://namami-infotech.com/MMSalary/Register/fetch_employee.php?officeid=${user.officeid}`,
-      )
+      .get(endpoint)
       .then((res) => {
         setEmployees(res.data.data);
         setFilteredData(res.data.data);
@@ -101,6 +105,7 @@ export const AddEmployee = () => {
       headerClassName: "bold-header",
       renderCell: (params) => (
         <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+        {user.type !== "super" && (
           <Button
             size="small"
             variant="contained"
@@ -111,6 +116,20 @@ export const AddEmployee = () => {
           >
             View
           </Button>
+        )}
+          {user.type === "super" && (
+            <Button
+            size="small"
+            variant="contained"
+            onClick={() => {
+              setViewEmployee(params.row);
+              setOpenViewModal(true);
+            }}
+          >
+            Add salary
+          </Button>
+          )}
+        {user.type !== "super" && (
           <Button
             size="small"
             variant="outlined"
@@ -121,6 +140,7 @@ export const AddEmployee = () => {
           >
             Add
           </Button>
+        )}
           <Button
             size="small"
             color="error"
@@ -242,10 +262,24 @@ export const AddEmployee = () => {
           setOpenViewModal(false);
           setViewEmployee(null);
         }}
-        maxWidth="md"
+        maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            maxHeight: "auto",
+            borderRadius: "12px",
+          },
+        }}
       >
-        <DialogTitle>
+        <DialogTitle
+          sx={{
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            color: "white",
+            padding: "16px",
+            fontSize: "20px",
+            fontWeight: "bold",
+          }}
+        >
           <Box
             sx={{
               display: "flex",
@@ -253,19 +287,20 @@ export const AddEmployee = () => {
               alignItems: "center",
             }}
           >
-            <span>Employee Details - {viewEmployee?.name}</span>
+            <span>👤 Employee Details</span>
             <IconButton
               onClick={() => {
                 setOpenViewModal(false);
                 setViewEmployee(null);
               }}
               size="small"
+              sx={{ color: "white" }}
             >
               <CloseIcon />
             </IconButton>
           </Box>
         </DialogTitle>
-        <DialogContent dividers sx={{ maxHeight: "70vh", overflowY: "auto" }}>
+        <DialogContent dividers sx={{ padding: "20px" }}>
           <EmployeeDetailsView data={viewEmployee} />
         </DialogContent>
         <DialogActions>
@@ -290,6 +325,7 @@ export const AddEmployee = () => {
         }}
         maxWidth="sm"
         fullWidth
+        disableEscapeKeyDown
       >
         <DialogTitle>
           <Box

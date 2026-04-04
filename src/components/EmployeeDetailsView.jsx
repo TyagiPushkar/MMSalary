@@ -10,148 +10,96 @@ const EmployeeDetailsView = ({ data = {} }) => {
     );
   }
 
-  const DetailRow = ({ label, value }) => (
-    <div className="flex justify-between py-3 border-b border-gray-200 last:border-b-0">
-      <span className="font-semibold text-gray-700">{label}:</span>
-      <span className="text-gray-600">{value || "N/A"}</span>
-    </div>
-  );
-
-  const SectionCard = ({ title, children }) => (
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 mb-4 border border-blue-200">
-      <h3 className="text-md font-bold text-blue-900 mb-3">{title}</h3>
-      {children}
-    </div>
-  );
-
   return (
-    <div className="space-y-4">
-      {/* Profile Header */}
-      <div className="flex flex-col items-center justify-center py-6 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg mb-6">
-        {/* Circular Profile Image */}
-        <div className="mb-4">
-          {data.photo || data.profile_photo ? (
-            <img
-              src={data.photo || data.profile_photo}
-              alt={data.name}
-              className="w-24 h-24 rounded-full border-4 border-blue-500 object-cover shadow-lg"
-              onError={(e) => {
-                e.target.src =
-                  "https://via.placeholder.com/96?text=" +
-                  (data.name ? data.name.charAt(0) : "E");
-              }}
-            />
-          ) : (
-            <div className="w-24 h-24 rounded-full bg-blue-500 text-white flex items-center justify-center text-4xl font-bold border-4 border-blue-600 shadow-lg">
-              {data.name ? data.name.charAt(0).toUpperCase() : "E"}
-            </div>
-          )}
-        </div>
-
-        {/* Employee Info */}
-        <h2 className="text-2xl font-bold text-gray-800">
-          {data.name || "Employee"}
-        </h2>
-        <p className="text-gray-600 text-sm mt-1">
-          ID:{" "}
-          <span className="font-semibold">
-            {data.id || data.employee_id || "N/A"}
-          </span>
-        </p>
-        <p className="text-blue-600 font-semibold mt-2">
-          {data.employee_role || data.role || data.designation || "Employee"}
-        </p>
+    <div className="p-3 bg-gradient-to-b from-blue-50 to-white rounded-lg">
+      {/* Photo Section */}
+      <div className="flex justify-center mb-4">
+        {data.photo || data.profile_photo ? (
+          <img
+            src={data.photo || data.profile_photo}
+            alt={data.name}
+            className="w-24 h-24 rounded-full border-4 border-blue-500 object-cover shadow-lg"
+            onError={(e) => {
+              e.target.src =
+                "https://via.placeholder.com/96?text=" +
+                (data.name ? data.name.charAt(0) : "E");
+            }}
+          />
+        ) : (
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center text-4xl font-bold border-4 border-blue-500 shadow-lg">
+            {data.name ? data.name.charAt(0).toUpperCase() : "E"}
+          </div>
+        )}
       </div>
 
-      {/* Personal Details */}
-      <SectionCard title="👤 Personal Details">
-        <DetailRow label="Name" value={data.name} />
-        <DetailRow label="Father's Name" value={data.father_name} />
-        <DetailRow label="Date of Birth" value={data.date_of_birth} />
-        <DetailRow label="Phone" value={data.phone} />
-        <DetailRow label="Email" value={data.email} />
-        <DetailRow label="Address" value={data.address} />
-        <DetailRow label="District" value={data.district} />
-        <DetailRow label="State" value={data.state} />
-        <DetailRow label="Pin Code" value={data.pin_code} />
-      </SectionCard>
+      {/* Employee Info Header */}
+      <div className="text-center mb-4 pb-3 border-b-2 border-blue-200">
+        <h2 className="text-xl font-bold text-gray-800">{data.name}</h2>
+        <p className="text-blue-600 font-semibold text-sm mt-1">
+          {data.employee_role || "Employee"}
+        </p>
+        <p className="text-gray-500 text-xs mt-1">ID: {data.id}</p>
+      </div>
 
-      {/* Employment Details */}
-      <SectionCard title="💼 Employment Details">
-        <DetailRow label="Employee ID" value={data.id || data.employee_id} />
-        <DetailRow label="Office" value={data.officeid} />
-        <DetailRow label="Location" value={data.location} />
-        <DetailRow label="Role" value={data.employee_role || data.role} />
-        <DetailRow label="Designation" value={data.designation} />
-        <DetailRow label="Department" value={data.department} />
-      </SectionCard>
+      {/* Info Grid */}
+      <div className="space-y-2">
+        <div className="flex justify-between items-center p-2 bg-white rounded border border-gray-200 hover:bg-blue-50 transition">
+          <span className="text-gray-600 font-medium text-sm">📞 Phone:</span>
+          <span className="text-gray-800 font-semibold text-sm">
+            {data.phone || "-"}
+          </span>
+        </div>
 
-      {/* Document Details */}
-      <SectionCard title="📄 Document Details">
-        <DetailRow label="Aadhar Number" value={data.aadhar_number} />
-        <DetailRow label="PAN Number" value={data.pan_number} />
-        <DetailRow
-          label="Aadhar Photo"
-          value={data.aadhar_photo ? "✓ Uploaded" : "Not Uploaded"}
-        />
-        <DetailRow
-          label="PAN Photo"
-          value={data.pan_photo ? "✓ Uploaded" : "Not Uploaded"}
-        />
-      </SectionCard>
+        <div className="flex justify-between items-center p-2 bg-white rounded border border-gray-200 hover:bg-blue-50 transition">
+          <span className="text-gray-600 font-medium text-sm">🏢 Office:</span>
+          <span className="text-gray-800 font-semibold text-sm">
+            {data.officeid || "-"}
+          </span>
+        </div>
 
-      {/* Bank Details */}
-      <SectionCard title="🏦 Bank Details">
-        <DetailRow
-          label="Account Holder Name"
-          value={data.account_holder_name}
-        />
-        <DetailRow label="Account Number" value={data.account_number} />
-        <DetailRow label="IFSC Code" value={data.account_ifsc} />
-        <DetailRow label="Bank Name" value={data.bank_name} />
-        <DetailRow label="Branch" value={data.branch} />
-      </SectionCard>
+        <div className="flex justify-between items-center p-2 bg-white rounded border border-gray-200 hover:bg-blue-50 transition">
+          <span className="text-gray-600 font-medium text-sm">
+            📍 Location:
+          </span>
+          <span className="text-gray-800 font-semibold text-sm">
+            {data.location || "-"}
+          </span>
+        </div>
+      </div>
 
-      {/* Additional Info */}
-      {(data.created_at || data.updated_at || data.status) && (
-        <SectionCard title="ℹ️ Additional Information">
-          <DetailRow label="Status" value={data.status} />
-          <DetailRow label="Created Date" value={data.created_at} />
-          <DetailRow label="Last Updated" value={data.updated_at} />
-        </SectionCard>
-      )}
-
-      {/* Photo Attachments */}
-      {(data.aadhar_photo || data.pan_photo) && (
-        <SectionCard title="📸 Attachments">
-          <div className="grid grid-cols-2 gap-4">
-            {data.aadhar_photo && (
-              <div className="text-center">
-                <p className="text-sm font-semibold text-gray-700 mb-2">
-                  Aadhar Photo
-                </p>
-                <img
-                  src={data.aadhar_photo}
-                  alt="Aadhar"
-                  className="w-full h-32 object-cover rounded border border-gray-300"
-                  onError={(e) => (e.target.src = "")}
-                />
-              </div>
-            )}
-            {data.pan_photo && (
-              <div className="text-center">
-                <p className="text-sm font-semibold text-gray-700 mb-2">
-                  PAN Photo
-                </p>
-                <img
-                  src={data.pan_photo}
-                  alt="PAN"
-                  className="w-full h-32 object-cover rounded border border-gray-300"
-                  onError={(e) => (e.target.src = "")}
-                />
-              </div>
-            )}
-          </div>
+      {/* Salary Section for Super Users */}
+      {userInfo.type === "super" && (
+        <SectionCard title="💰 Add Salary">
+          {message.text && (
+            <div className="mb-4">
+              {message.type === "success" ? (
+                <Alert severity="success">{message.text}</Alert>
+              ) : (
+                <Alert severity="error">{message.text}</Alert>
+              )}
+            </div>
+          )}
+          <Box sx={{ display: "flex", gap: 2, alignItems: "flex-end" }}>
+            <TextField
+              label="Salary Amount"
+              type="number"
+              value={salary}
+              onChange={(e) => setSalary(e.target.value)}
+              placeholder="Enter salary amount"
+              fullWidth
+              size="small"
+              disabled={loading}
+            />
+            <Button
+              variant="contained"
+              color="success"
+              onClick={handleApproveSalary}
+              disabled={loading}
+              sx={{ whiteSpace: "nowrap" }}
+            >
+              {loading ? <CircularProgress size={24} /> : "Add & Approve"}
+            </Button>
+          </Box>
         </SectionCard>
       )}
     </div>
