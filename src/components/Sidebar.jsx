@@ -136,7 +136,7 @@ const Sidebar = () => {
     {
       path: "/ManageEmployee",
       label: "Employee Master",
-      show: isHO,
+      show: isHO || isEDSP,
     },
     // EDSP station-specific
     {

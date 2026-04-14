@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+  import React, { useEffect } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -171,7 +171,13 @@ const App = () => {
                   //only routes for superviser and dsp{" "}
                   {userInfo &&
                     (userInfo.station_type === "DSP" || isDualRole) && <></>}
+                  {/* add by shahanshah */}
                   <Route path="/AddEmployee" element={<AddEmployee />} />
+                   <Route
+                        path="/ManageEmployee"
+                        element={<ManageEmployee />}
+                      />
+                    {/* end by shahanhah */}
                   <Route path="/Station" element={<Station />} />
                   <Route path="/CashShort" element={<CashShort />} />
                   <Route

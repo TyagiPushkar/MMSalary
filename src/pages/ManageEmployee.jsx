@@ -29,7 +29,7 @@ const ManageEmployee = () => {
   const [data, setData] = useState([]);
   const [editRow, setEditRow] = useState(null);
   const [open, setOpen] = useState(false);
-  
+
   const [accountNum, setAccountNum] = useState("");
   const [ifsc, setIfsc] = useState("");
   const [salary, setSalary] = useState("");
@@ -41,7 +41,9 @@ const ManageEmployee = () => {
 
   const fetchData = async () => {
     const user = JSON.parse(sessionStorage.getItem("user-info"));
-    const response = await fetch(`${phpBaseURL}/fetch_employees.php`);
+    const response = await fetch(
+      `${phpBaseURL}/Employee/fetch_employee_byofficeid.php?officeid=${user.officeid}`,
+    );
 
     const responseData = await response.json();
     setData(responseData.data);
@@ -106,8 +108,6 @@ const ManageEmployee = () => {
       ),
     },
   ];
-
-
 
   const handleEdit = (row) => {
     setEditRow(row);
